@@ -1,20 +1,49 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { NavigationContainer } from "@react-navigation/native";
+import Energy from "./screens/Energy";
+import Main from "./screens/Main";
+import Settings from "./screens/Settings";
+import { SimpleLineIcons } from "@expo/vector-icons";
 
-export default function App() {
+const Tab = createBottomTabNavigator();
+
+function MyTabs() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            const routeName = route.name;
+            let icon;
+
+            if (routeName === "Home") {
+              icon = "home";
+            } else if (route.name === "Energy") {
+              icon = "energy";
+            } else if (route.name === "Settings") {
+              icon = "settings";
+            }
+            return (
+              <SimpleLineIcons
+                name={icon}
+                size={focused ? 28 : 24}
+                color={focused ? "white" : "black"}
+              />
+            );
+          },
+          headerShown: false,
+          tabBarActiveBackgroundColor: "#6DD7FD",
+          tabBarActiveTintColor: "white",
+        })}
+      >
+        <Tab.Screen name="Energy" component={Energy}></Tab.Screen>
+        <Tab.Screen name="Home" component={Main}></Tab.Screen>
+        <Tab.Screen name="Settings" component={Settings}></Tab.Screen>
+      </Tab.Navigator>
+    </NavigationContainer>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default function App() {
+  return <MyTabs />;
+}
