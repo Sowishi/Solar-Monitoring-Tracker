@@ -4,6 +4,7 @@ import Energy from "./screens/Energy";
 import Main from "./screens/Main";
 import Settings from "./screens/Settings";
 import { SimpleLineIcons } from "@expo/vector-icons";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const Tab = createBottomTabNavigator();
 
@@ -27,13 +28,18 @@ function MyTabs() {
               <SimpleLineIcons
                 name={icon}
                 size={focused ? 28 : 24}
-                color={focused ? "white" : "black"}
+                color={focused ? "#6AD0F5" : "black"}
               />
             );
           },
           headerShown: false,
-          tabBarActiveBackgroundColor: "#6DD7FD",
-          tabBarActiveTintColor: "white",
+          tabBarStyle: {
+            position: "absolute",
+            bottom: 13,
+            marginHorizontal: 10,
+            borderRadius: 10,
+          },
+          tabBarActiveTintColor: "#6AD0F5",
         })}
       >
         <Tab.Screen name="Energy" component={Energy}></Tab.Screen>
