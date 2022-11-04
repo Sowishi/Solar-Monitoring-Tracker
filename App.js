@@ -4,7 +4,6 @@ import Energy from "./screens/Energy";
 import Main from "./screens/Main";
 import Settings from "./screens/Settings";
 import { SimpleLineIcons } from "@expo/vector-icons";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const Tab = createBottomTabNavigator();
 
@@ -12,6 +11,7 @@ function MyTabs() {
   return (
     <NavigationContainer>
       <Tab.Navigator
+        initialRouteName="Home"
         screenOptions={({ route }) => ({
           tabBarIcon: ({ focused, color, size }) => {
             const routeName = route.name;
