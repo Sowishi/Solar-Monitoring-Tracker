@@ -1,11 +1,35 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { NavigationContainer } from "@react-navigation/native";
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Dimensions } from "react-native";
+import { Ionicons } from '@expo/vector-icons'; 
+
+import Constants from "expo-constants";
 import Energy from "./screens/Energy";
 import Main from "./screens/Main";
 import Settings from "./screens/Settings";
 import { SimpleLineIcons } from "@expo/vector-icons";
+import Battery from "./screens/Battery";
 
 const Tab = createBottomTabNavigator();
+const Top = createMaterialTopTabNavigator();
+
+
+
+function TopTab(){
+  return(
+      <Top.Navigator 
+       
+      screenOptions={{
+        tabBarLabelStyle: { fontSize: 12 },
+        tabBarActiveTintColor: "#6AD0F5",}}
+        style={{marginTop: Constants.statusBarHeight}}>
+        <Tab.Screen  name="solar" component={Energy}/>
+        <Tab.Screen name="battery" component={Battery}/>
+      </Top.Navigator>
+  )
+}
 
 function MyTabs() {
   return (
@@ -34,15 +58,12 @@ function MyTabs() {
           },
           headerShown: false,
           tabBarStyle: {
-            position: "absolute",
-            bottom: 13,
-            marginHorizontal: 10,
             borderRadius: 10,
           },
           tabBarActiveTintColor: "#6AD0F5",
         })}
       >
-        <Tab.Screen name="Energy" component={Energy}></Tab.Screen>
+        <Tab.Screen name="Energy" component={TopTab}></Tab.Screen>
         <Tab.Screen name="Home" component={Main}></Tab.Screen>
         <Tab.Screen name="Settings" component={Settings}></Tab.Screen>
       </Tab.Navigator>
@@ -51,5 +72,9 @@ function MyTabs() {
 }
 
 export default function App() {
-  return <MyTabs />;
+  return (
+    <SafeAreaProvider>
+      <MyTabs/>
+    </SafeAreaProvider>
+  );
 }
