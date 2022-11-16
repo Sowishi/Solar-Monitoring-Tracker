@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { LineChart, ProgressChart } from "react-native-chart-kit";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
+import { getPixelSizeForLayoutSize } from "react-native/Libraries/Utilities/PixelRatio";
 
 export default function Energy() {
   const [info, setInfo] = useState();
@@ -89,9 +90,53 @@ export default function Energy() {
     }, 3000);
   };
 
+  const getSumOfEntry = () => {
+    const power = info.map(i => i.pv_power)
+    const current = info.map(i => i.pv_current)
+    const volt = info.map(i => i.pv_volt)
+    
+    let powerSum = 0;
+    let currentSum = 0;
+    let voltSum = 0;
+    power.map(i => powerSum += i)
+    current.map(i => currentSum += i)
+    volt.map(i => voltSum += i)
+
+    return [powerSum, currentSum, voltSum, power, current, volt]
+
+  }
+
+  const handleProgressRingData = () => {
+    const sumEntry = getSumOfEntry()
+    const powerSum = sumEntry[0]
+    const currentSum = sumEntry[1]
+    const voltSum = sumEntry[2]
+
+
+    const totalSum = powerSum  + currentSum  + voltSum ;
+
+    if (powerSum === 0){
+      return [0,0,0]
+    }
+
+    return [voltSum / totalSum, currentSum / totalSum, powerSum / totalSum]
+  }
+
+
+  const getEnergyUsage = () => {
+    const sumEntry = getSumOfEntry()
+    const lengthOfEntries = sumEntry[3].length + sumEntry[4].length + sumEntry[5].length;
+    const totalSum = sumEntry[0] + sumEntry[1] + sumEntry[2];
+    
+    const energyUsage = (totalSum * (0.25 * lengthOfEntries) ) / 1000;
+    return energyUsage
+     
+
+  }
+
   useEffect(() => {
     getData();
-    refreshLoop();
+    refreshLoop()
   }, []);
 
   return (
@@ -103,20 +148,21 @@ export default function Energy() {
         }}
       >
         Total Energy Usage:{" "}
-        <Text style={{ fontWeight: "bold", color: "#6AD0F5" }}>
-          83.33K kWh <Feather name="sun" size={24} color="black" />
-        </Text>
+        {info &&  <Text style={{ fontWeight: "bold", color: "#6AD0F5" }}>
+         {getEnergyUsage()} kWh <Feather name="sun" size={24} color="black" />
+        </Text>}
+       
       </Text>
       <ScrollView>
         <View style={{ justifyContent: "center", alignItems: "center" }}>
-          <View>{SolarLineGraph(info)}</View>
+          <View>{SolarLineGraph()}</View>
           <View>
-            <ProgressChart
+            {info &&  <ProgressChart
               data={{
-                labels: ["Swim", "Bike", "Run"], // optional
-                data: [0.4, 0.6, 0.8],
+                labels: ["Voltage", "Current", "Power"], // optional
+                data: handleProgressRingData(),
               }}
-              width={Dimensions.get("window").width - 20}
+              width={Dimensions.get("window").width - 18}
               height={220}
               strokeWidth={16}
               radius={32}
@@ -140,7 +186,8 @@ export default function Energy() {
                 marginVertical: 5,
                 borderRadius: 16,
               }}
-            />
+            />}
+           
           </View>
         </View>
       </ScrollView>

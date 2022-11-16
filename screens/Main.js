@@ -30,7 +30,6 @@ export default function Main() {
   };
 
   const handleButton1_State = async () => {
-    setLoading(true);
     let state = "";
     if (button1_state === "False" || button1_state === "false") {
       state = "true";
@@ -41,7 +40,6 @@ export default function Main() {
       `https://sowishi.pythonanywhere.com/button_state/button_bat/${state}`
     );
     getButton1_State();
-    setLoading(false);
   };
 
   const getButton2_State = async () => {
@@ -53,7 +51,6 @@ export default function Main() {
   };
 
   const handleButton2_State = async () => {
-    setLoading(true);
     let state = "";
     if (button2_state === "False" || button2_state === "false") {
       state = "true";
@@ -64,7 +61,6 @@ export default function Main() {
       `https://sowishi.pythonanywhere.com/button_state/button_sol/${state}`
     );
     getButton2_State();
-    setLoading(false);
   };
 
   const greetUser = () => {
