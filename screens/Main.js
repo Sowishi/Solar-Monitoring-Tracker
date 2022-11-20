@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TouchableHighlight,
   Dimensions,
+  Image,
 } from "react-native";
 
 import React, { useEffect, useState } from "react";
@@ -16,9 +17,21 @@ import { Ionicons } from "@expo/vector-icons";
 
 import SvgComponent from "./StatusMap";
 
+import AppLoading from 'expo-app-loading';
+import {
+  useFonts,
+  Signika_300Light,
+  Signika_400Regular,
+  Signika_500Medium,
+  Signika_600SemiBold,
+  Signika_700Bold,
+} from '@expo-google-fonts/signika';
+
+
 export default function Main() {
   const [button1_state, setButton1_state] = useState();
   const [button2_state, setButton2_state] = useState();
+  const [info, setInfo] = useState();
   const [loading, setLoading] = useState(false);
 
   const getButton1_State = async () => {
@@ -26,15 +39,13 @@ export default function Main() {
       "https://sowishi.pythonanywhere.com/button_state/button_bat"
     );
     const json = await response.json();
-    setButton1_state(json.state);
+    setButton1_state(parseInt(json.state));
   };
 
   const handleButton1_State = async () => {
-    let state = "";
-    if (button1_state === "False" || button1_state === "false") {
-      state = "true";
-    } else {
-      state = "false";
+    let state =  0;
+    if (button1_state === 0) {
+      state = 1;
     }
     await fetch(
       `https://sowishi.pythonanywhere.com/button_state/button_bat/${state}`
@@ -47,21 +58,25 @@ export default function Main() {
       "https://sowishi.pythonanywhere.com/button_state/button_sol"
     );
     const json = await response.json();
-    setButton2_state(json.state);
+    setButton2_state(parseInt(json.state));
   };
 
   const handleButton2_State = async () => {
-    let state = "";
-    if (button2_state === "False" || button2_state === "false") {
-      state = "true";
-    } else {
-      state = "false";
+    let state = 0;
+    if (button2_state === 0) {
+      state = 1;
     }
     await fetch(
       `https://sowishi.pythonanywhere.com/button_state/button_sol/${state}`
     );
     getButton2_State();
   };
+
+  const getInfoData = async () => {
+    const res = await fetch("https://sowishi.pythonanywhere.com/info")
+    const json = await res.json();
+    setInfo(json);
+  }
 
   const greetUser = () => {
     const today = new Date();
@@ -75,9 +90,21 @@ export default function Main() {
     }
   };
 
+  const refreshLoop = () => {
+    setTimeout(() => {
+      console.log("refreshed Main");
+      getButton1_State();
+      getButton2_State();
+      getInfoData()
+      refreshLoop();
+    }, 3000);
+  };
+
   useEffect(() => {
     getButton1_State();
     getButton2_State();
+    getInfoData()
+    refreshLoop()
   }, []);
 
   return (
@@ -85,7 +112,7 @@ export default function Main() {
       style={{
         flex: 1,
         backgroundColor:
-          button1_state === "true" && button2_state == "true"
+          button1_state === 1 && button2_state == 1
             ? "#27B376"
             : "#BF212F",
       }}
@@ -99,14 +126,14 @@ export default function Main() {
         style={{
           flex: 1,
           backgroundColor:
-            button1_state === "true" && button2_state == "true"
+            button1_state === 1 && button2_state == 1
               ? "#27B376"
               : "#BF212F",
           justifyContent: "center",
           alignItems: "center",
         }}
       >
-        <View style={{ justifyContent: "center", alignItems: "center" }}>
+        <View style={{ justifyContent: "center", alignItems: "center",    fontFamily: 'Signika_300Light',}}>
           <Text
             style={{
               fontSize: 30,
@@ -129,7 +156,7 @@ export default function Main() {
           >
             Solar State:{" "}
             <Text style={{ fontWeight: "bold" }}>
-              {button1_state === "true" && button2_state == "true"
+              {button1_state === 1 && button2_state == 1
                 ? "ACTIVE"
                 : "INACTIVE"}
             </Text>
@@ -163,6 +190,9 @@ export default function Main() {
           {/* Icons Button */}
 
           <View style={{ position: "relative" }}>
+            <View style={{position: "absolute", zIndex: 2, left: "44%", top: "6.5%"}}>
+              <Image source={require("../assets/controller.png")} style={{width: 50, height: 50, }}/>
+            </View>
             <TouchableOpacity
               style={{
                 height: 70,
@@ -194,28 +224,30 @@ export default function Main() {
             {/* Icons Status  */}
 
             <View
-              style={{
+              style={[{
                 position: "absolute",
                 bottom: "23%",
                 left: "19.5%",
                 zIndex: 99,
-              }}
+              }, button1_state === -1 ? {left: "15%"} : {}]}
             >
               <Text style={{ color: "#6AD0F5", fontWeight: "bold" }}>
-                Active
+                {button1_state !== -1 && (button1_state === 1 ? "Active" : "Inactive" )}
+                {button1_state === -1 && <Text style={{color: "orange"}}> Low Battery </Text>}
               </Text>
             </View>
 
             <View
-              style={{
+              style={[{
                 position: "absolute",
                 bottom: "23%",
                 right: "19.5%",
                 zIndex: 99,
-              }}
+              }, button2_state === -1 ? {right: "15%"} : {}]}
             >
               <Text style={{ color: "#6AD0F5", fontWeight: "bold" }}>
-                Active
+                {button2_state !== -1 && (button2_state === 1 ? "Active" : "Inactive" )}
+                {button2_state === -1 && <Text style={{color: "orange"}}> Low Battery </Text>}
               </Text>
             </View>
 
@@ -237,17 +269,19 @@ export default function Main() {
               <Text style={{ color: "black", fontWeight: "bold" }}>
                 Voltage:{" "}
                 <Text style={{ fontWeight: "bold", color: "#27B376" }}>
-                  55kV
+                  {info ? `${info.bat_voltage}V` : "loading"}
                 </Text>{" "}
                 {"\n"}
                 Current:{" "}
                 <Text style={{ fontWeight: "bold", color: "#27B376" }}>
-                  55kV
+                  {info ? `${info.bat_current}A` : "loading"}
+
                 </Text>{" "}
                 {"\n"}
                 Power:{" "}
                 <Text style={{ fontWeight: "bold", color: "#27B376" }}>
-                  55kV
+                {info ? `${info.bat_power}W` : "loading"}
+
                 </Text>
               </Text>
             </View>
@@ -269,29 +303,29 @@ export default function Main() {
               <Text style={{ color: "black", fontWeight: "bold" }}>
                 Voltage:{" "}
                 <Text style={{ fontWeight: "bold", color: "#BF212F" }}>
-                  55kV
+                {info ?`${info.pv_voltage}V` : "loading"}
                 </Text>{" "}
                 {"\n"}
                 Current:{" "}
                 <Text style={{ fontWeight: "bold", color: "#BF212F" }}>
-                  55kV
+                {info ?`${info.pv_current}A` : "loading"}
                 </Text>{" "}
                 {"\n"}
                 Power:{" "}
                 <Text style={{ fontWeight: "bold", color: "#BF212F" }}>
-                  55kV
+                {info ?`${info.pv_power}W` : "loading"}
                 </Text>
               </Text>
             </View>
 
             <SvgComponent
               button1_color={
-                button1_state === "true" || button1_state === "True"
+                button1_state === 1 || button1_state === 1
                   ? "#27B376"
                   : "#BF212F"
               }
               button2_color={
-                button2_state === "true" || button2_state === "True"
+                button2_state === 1 || button2_state === 1
                   ? "#27B376"
                   : "#BF212F"
               }
@@ -301,7 +335,7 @@ export default function Main() {
       </View>
       <StatusBar
         backgroundColor={
-          button1_state === "true" && button2_state == "true"
+          button1_state === 1 && button2_state == 1
             ? "#27B376"
             : "#BF212F"
         }

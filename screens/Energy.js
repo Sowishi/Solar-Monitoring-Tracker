@@ -3,10 +3,16 @@ import React, { useEffect, useState } from "react";
 import { LineChart, ProgressChart } from "react-native-chart-kit";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { getPixelSizeForLayoutSize } from "react-native/Libraries/Utilities/PixelRatio";
 
 export default function Energy() {
-  const [info, setInfo] = useState();
+  const [lineGraph, setLineGraph] = useState();
+  const [circleGraph, setCircleGraph] = useState();
+
+
+  const date = new Date();
+  const today =  date.toLocaleString('default', { month: 'short' });
+  const split = today.split(" ");
+  const currentTime = split[1] + " " + split[2] + " " + split[4]
 
   function SolarLineGraph() {
     return (
@@ -50,14 +56,27 @@ export default function Energy() {
   }
 
   const getData = async () => {
-    const response = await fetch("https://sowishi.pythonanywhere.com/info");
-    const data = await response.json();
-    setInfo(data);
+    const lineRespond = await fetch("https://sowishi.pythonanywhere.com/lineGraph");
+    const lineData = await lineRespond.json();
+    const circleRespond = await fetch("https://sowishi.pythonanywhere.com/circleGraph");
+    const circleData = await circleRespond.json();
+
+    const lineDataFiltered = lineData.filter(i => {
+      const split = i.time.split(" ");
+      const time = split[1] + " " + split[2] + " " + split[4]
+      if (time === currentTime){
+        return i
+      }
+    })
+    
+    setLineGraph(lineDataFiltered);
+    setCircleGraph(circleData)
+
   };
 
   const handlePowerPV = () => {
-    if (info !== undefined) {
-      const toReturn = info.map((i) => {
+    if (lineGraph !== undefined) {
+      const toReturn = lineGraph.map((i) => {
         return i.pv_power;
       });
       return toReturn;
@@ -68,8 +87,8 @@ export default function Energy() {
   };
 
   const handleTime = () => {
-    if (info !== undefined) {
-      const toReturn = info.map((i) => {
+    if (lineGraph !== undefined) {
+      const toReturn = lineGraph.map((i) => {
         const split = i.timeHours.split(":");
         const newHour = parseInt(split[0]) - 4;
         const time = `${newHour}:${split[1]}`;
@@ -84,54 +103,38 @@ export default function Energy() {
 
   const refreshLoop = () => {
     setTimeout(() => {
-      console.log("refreshed");
+      console.log("refreshed  Energy");
       getData();
       refreshLoop();
-    }, 3000);
+    }, 5000);
   };
 
-  const getSumOfEntry = () => {
-    const power = info.map(i => i.pv_power)
-    const current = info.map(i => i.pv_current)
-    const volt = info.map(i => i.pv_volt)
-    
-    let powerSum = 0;
-    let currentSum = 0;
-    let voltSum = 0;
-    power.map(i => powerSum += i)
-    current.map(i => currentSum += i)
-    volt.map(i => voltSum += i)
-
-    return [powerSum, currentSum, voltSum, power, current, volt]
-
-  }
 
   const handleProgressRingData = () => {
-    const sumEntry = getSumOfEntry()
-    const powerSum = sumEntry[0]
-    const currentSum = sumEntry[1]
-    const voltSum = sumEntry[2]
+    if (circleGraph.length !== 0) {
+      console.log('yes')
+      return [circleGraph.pv_voltage, circleGraph.pv_current, circleGraph.pv_power ]
+    }
+    else{
 
-
-    const totalSum = powerSum  + currentSum  + voltSum ;
-
-    if (powerSum === 0){
       return [0,0,0]
     }
-
-    return [voltSum / totalSum, currentSum / totalSum, powerSum / totalSum]
   }
 
 
   const getEnergyUsage = () => {
-    const sumEntry = getSumOfEntry()
-    const lengthOfEntries = sumEntry[3].length + sumEntry[4].length + sumEntry[5].length;
-    const totalSum = sumEntry[0] + sumEntry[1] + sumEntry[2];
-    
-    const energyUsage = (totalSum * (0.25 * lengthOfEntries) ) / 1000;
-    return energyUsage
-     
 
+    if (lineGraph !== undefined){
+      const sum = 0;
+       lineGraph.map(i => {
+        sum = sum + i.pv_power;
+      } )
+      
+      const output = (sum * 0.50 * lineGraph.length) / 1000
+      return output;
+      
+    }
+    
   }
 
   useEffect(() => {
@@ -148,31 +151,38 @@ export default function Energy() {
         }}
       >
         Total Energy Usage:{" "}
-        {info &&  <Text style={{ fontWeight: "bold", color: "#6AD0F5" }}>
+        {circleGraph &&  <Text style={{ fontWeight: "bold", color: "#6AD0F5" }}>
          {getEnergyUsage()} kWh <Feather name="sun" size={24} color="black" />
         </Text>}
        
       </Text>
+        <View style={{marginVertical: 10, marginHorizontal: 10}}>
+          <Text style={{fontWeight: "bold", fontSize: 15}}>{currentTime}</Text>
+        </View>
+
+
       <ScrollView>
         <View style={{ justifyContent: "center", alignItems: "center" }}>
           <View>{SolarLineGraph()}</View>
           <View>
-            {info &&  <ProgressChart
+            {circleGraph &&  <ProgressChart
               data={{
                 labels: ["Voltage", "Current", "Power"], // optional
                 data: handleProgressRingData(),
               }}
-              width={Dimensions.get("window").width - 18}
+              width={Dimensions.get("screen").width - 18}
               height={220}
               strokeWidth={16}
               radius={32}
               hideLegend={false}
               chartConfig={{
                 backgroundColor: "#6AD0F5",
-                backgroundGradientFrom: "#6AD0F5",
-                backgroundGradientTo: "#BF212F",
-                color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+                backgroundGradientFrom: "#fefefe",
+                backgroundGradientTo: "#fefefe",
+                color: (opacity = 1) => `rgba(0, 233, 0, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(0, 0, 0
+                  
+                  , ${opacity})`,
                 style: {
                   borderRadius: 16,
                 },
