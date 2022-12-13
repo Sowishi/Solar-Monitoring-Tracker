@@ -8,6 +8,7 @@ import {
   TouchableHighlight,
   Dimensions,
   Image,
+  
 } from "react-native";
 
 import React, { useEffect, useState } from "react";
@@ -17,15 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import SvgComponent from "./StatusMap";
 
-import AppLoading from 'expo-app-loading';
-import {
-  useFonts,
-  Signika_300Light,
-  Signika_400Regular,
-  Signika_500Medium,
-  Signika_600SemiBold,
-  Signika_700Bold,
-} from '@expo-google-fonts/signika';
+
 
 
 export default function Main() {
@@ -133,7 +126,7 @@ export default function Main() {
           alignItems: "center",
         }}
       >
-        <View style={{ justifyContent: "center", alignItems: "center",    fontFamily: 'Signika_300Light',}}>
+        <View style={{ justifyContent: "center", alignItems: "center",}}>
           <Text
             style={{
               fontSize: 30,
@@ -202,6 +195,7 @@ export default function Main() {
                 left: "17%",
                 bottom: "29%",
               }}
+              disabled={button1_state === -1 ? true : false}
               onPress={handleButton1_State}
             >
               <View></View>

@@ -111,6 +111,7 @@ export default function Energy() {
 
 
   const handleProgressRingData = () => {
+    
     if (circleGraph.length !== 0) {
       console.log('yes')
       return [circleGraph.pv_voltage, circleGraph.pv_current, circleGraph.pv_power ]
@@ -125,7 +126,7 @@ export default function Energy() {
   const getEnergyUsage = () => {
 
     if (lineGraph !== undefined){
-      const sum = 0;
+      let sum = 0;
        lineGraph.map(i => {
         sum = sum + i.pv_power;
       } )
